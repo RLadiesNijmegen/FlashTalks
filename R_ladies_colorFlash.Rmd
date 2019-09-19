@@ -1,0 +1,209 @@
+---
+title: "On Colorblind Friendly Plotting"
+author: "Laurel Brehm"
+output:
+  slidy_presentation: default
+---
+```{r include=FALSE}
+library(ggplot2)
+library(viridisLite)
+library(cowplot)
+library(dichromat)
+
+knitr::opts_chunk$set(fig.width=6, fig.height=2.5) 
+```
+
+---
+
+The visual system works via a set of sensors in your eye called _rods_ and _cones_
+
+Rods are super sensitive to low levels of light -- they're known as your 'light / dark' detectors.
+
+Cones are sensitive to different frequencies of light -- they're what gives you color vision. 
+
+![](https://mammothmemory.net/images/user/base/uncategorised/1.29.17%20The%20receptors%20of%20rods%20and%20cones%20in%20the%20eye.jpg){width=70%}
+
+---
+
+You may have heard that there are 3 types of cones known as _red_, _green_, and _blue_ 
+
+---
+
+You may have heard that there are 3 types of cones known as _red_, _green_, and _blue_ 
+
+This is true on one level, but it doesn't work the way you think.
+
+---
+
+
+You may have heard that there are 3 types of cones known as _red_, _green_, and _blue_ 
+
+This is true on one level, but it doesn't work the way you think.
+
+In fact, *each* cone sees *all* types of light-- they're just different in sensitvity to the various frequencies that make up colors.
+
+
+---
+
+Light is a spectrum of wavelengths.
+
+Different wavelengths are percieved as different hues.
+
+
+![](https://upload.wikimedia.org/wikipedia/commons/d/dd/Spectre_detail.png){width=90%}
+
+---
+
+The three cones are sensitive to different wavelengths in this spectrum:
+
+\
+
+\
+
+\
+
+\
+
+![](https://upload.wikimedia.org/wikipedia/commons/9/94/1416_Color_Sensitivity.jpg){width=60%}
+
+---
+
+Color perception happens due to wavelengths of light activating each cone differentially.
+
+  - Red = lots of activation on long cone, less activation on medium cone, no activation on short cone
+    
+  - Blue = lots of activation on short cone, less (and equal) activation on medium and long cones. 
+
+![](https://upload.wikimedia.org/wikipedia/commons/9/94/1416_Color_Sensitivity.jpg){width=60%}
+
+---
+
+This has 2 important implications for data visualisation:
+
+  1. *Everybody* percieves hue differences between green/yellow better than blue/violet
+    
+  2. When either the green or red cone malfunctions, different wavelengths of light are percieved to be the same hue.
+
+![](https://upload.wikimedia.org/wikipedia/commons/9/94/1416_Color_Sensitivity.jpg){width=60%}
+
+
+# Practical tip 1: Avoid rainbows, use viridis
+
+Here's the same plot using traditional rainbow and the viridis palette (from viridisLite() ), which has been designed to be an equal luminance gradient (=good for representing real contrasts)
+
+```{r message=FALSE, warning=FALSE}
+p <- ggplot(iris,aes(x=Sepal.Length,y=Sepal.Width,color=Petal.Width))+
+  geom_point()+theme_bw()
+
+plot_grid(
+p + scale_color_gradientn(colors=rainbow(5)),
+p + scale_color_gradientn(colors=viridis(5)) 
+)
+```
+
+# Practical tip 1: Avoid rainbows, use viridis
+
+Even for people with 100% normal color vision, rainbows produce perceptual differences that aren't really there, and minimize differences that are.
+
+```{r message=FALSE, warning=FALSE}
+p <- ggplot(iris,aes(x=Sepal.Length,y=Sepal.Width,color=Petal.Width))+
+  geom_point()+theme_bw()
+
+plot_grid(
+p + scale_color_gradientn(colors=rainbow(5)),
+p + scale_color_gradientn(colors=viridis(5)) 
+)
+```
+
+# Practical tip 2: Avoid contrasting red and green
+
+8% of people are colorblind!  (Higher for men than women)
+
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Color_blindness.png/660px-Color_blindness.png)
+
+# Practical tip 2: Avoid contrasting red and green
+
+Here's the traditional default ggplot color scheme with simulated deficiency in the deutan cone (most common form of colorblindness) using package dichromat(). *IT IS VERY BAD*
+
+```{r message=FALSE, warning=FALSE}
+p2 <- ggplot(iris,aes(x=Sepal.Length,y=Sepal.Width,color=Species, shape=Species))+
+  geom_point()+theme_bw()
+
+plot_grid(
+p2 + scale_color_manual(values=c("#F8766D","#00BA38","#619CFF")),
+p2 + scale_color_manual(values=dichromat(c("#F8766D","#00BA38","#619CFF"),type="deutan")) 
+)
+```
+
+# Practical tip 2: Avoid contrasting red and green
+
+Here's a better option, gotten from http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
+
+\
+
+```{r message=FALSE, warning=FALSE}
+plot_grid(
+p2 + scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9")),
+p2 + scale_color_manual(values=dichromat(c("#999999", "#E69F00", "#56B4E9"),type="deutan")) 
+)
+```
+
+# Practical tip 3: Seriously, avoid rainbows
+
+Here's the rainbow plot with simulated deficiency in the deutan cone (most common form of colorblindness) using package dichromat(). *IT IS ALSO PRETTY BAD*
+
+```{r message=FALSE, warning=FALSE}
+p <- ggplot(iris,aes(x=Sepal.Length,y=Sepal.Width,color=Petal.Width))+
+  geom_point()+theme_bw()
+
+plot_grid(
+p + scale_color_gradientn(colors=rainbow(5)),
+p + scale_color_gradientn(colors=dichromat(rainbow(5),type="deutan")) 
+)
+```
+
+# Practical tip 3: Seriously, avoid rainbows
+
+Here's the viridis plot with simulated deficiency in the deutan cone (most common form of colorblindness) using package dichromat(). *It looks much less bad!*
+
+```{r message=FALSE, warning=FALSE}
+p <- ggplot(iris,aes(x=Sepal.Length,y=Sepal.Width,color=Petal.Width))+
+  geom_point()+theme_bw()
+
+plot_grid(
+p + scale_color_gradientn(colors=viridis(5)),
+p + scale_color_gradientn(colors=dichromat(viridis(5),type="deutan")) 
+)
+```
+
+# Practical tip 3: Seriously, avoid rainbows
+
+Here's the default continuous color palette with simulated deficiency in the deutan cone (most common form of colorblindness) using package dichromat(). *It is actually pretty good!*
+
+```{r message=FALSE, warning=FALSE}
+p <- ggplot(iris,aes(x=Sepal.Length,y=Sepal.Width,color=Petal.Width))+
+  geom_point()+theme_bw()
+
+plot_grid(
+p + scale_fill_gradient(),
+p + scale_color_gradient(high=dichromat("#52A9ED",type="deutan"),low=dichromat("#142E47",type="deutan")) 
+)
+```
+
+# Plotting Recommendations
+
+1. Avoid default ggplot categorical colors or any palette that contrasts green to red.
+
+   --> Contrasting blue/purple to yellow/orange/red is good (or even MPI green/orange)
+    
+   --> Light / dark contrasts are your friend!
+
+
+2. Use viridis or monochromatic spectrum for continuous colors.
+
+   --> The key is 'equal luminance' 
+
+3. If you have to have a complex palette, use other aesthetics to your advantage.
+
+   --> Map variable to color *and* shape *and* use extra labels.
+   
